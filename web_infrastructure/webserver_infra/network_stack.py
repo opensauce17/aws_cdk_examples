@@ -7,8 +7,6 @@ class devVpcStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-
-        # The code that defines your stack goes here
         self.vpc = ec2.Vpc(self, "dev_VPC",
                            max_azs=2,
                            cidr="10.0.0.0/16",
@@ -25,6 +23,7 @@ class devVpcStack(core.Stack):
                            ],
                            nat_gateways=2,
                            )
+
         core.CfnOutput(self, "Output",
                        value=self.vpc.vpc_id)
 
@@ -33,8 +32,6 @@ class prdVpcStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-
-        # The code that defines your stack goes here
         self.vpc = ec2.Vpc(self, "prd_VPC",
                            max_azs=2,
                            cidr="10.0.0.0/16",
@@ -51,6 +48,7 @@ class prdVpcStack(core.Stack):
                            ],
                            nat_gateways=2,
                            )
+
         core.CfnOutput(self, "Output",
                        value=self.vpc.vpc_id)
 
