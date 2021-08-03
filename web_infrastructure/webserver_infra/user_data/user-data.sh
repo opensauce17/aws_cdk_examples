@@ -3,7 +3,7 @@ yum update -y
 yum install -y httpd
 systemctl start httpd.service
 systemctl enable httpd.service
-echo Hello World from $(hostname -f) > /var/www/html/index.html
+echo "Hello World from $(hostname -f)" > /var/www/html/index.html
 # Add apache logs to cloudwatch
 cat << 'EOF' >> /etc/awslogs/awslogs.conf
 [apache logs]
