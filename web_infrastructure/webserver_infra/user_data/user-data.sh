@@ -1,6 +1,7 @@
 #!/bin/bash
 yum update -y
 yum install -y httpd
+yum install -y awslogsd
 systemctl start httpd.service
 systemctl enable httpd.service
 echo "Hello World from $(hostname -f)" > /var/www/html/index.html
