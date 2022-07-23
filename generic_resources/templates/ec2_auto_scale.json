@@ -1,0 +1,521 @@
+{
+  "Resources": {
+    "AppLB8480806C": {
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+      "Properties": {
+        "LoadBalancerAttributes": [
+          {
+            "Key": "deletion_protection.enabled",
+            "Value": "false"
+          }
+        ],
+        "Name": "AppLB",
+        "Scheme": "internet-facing",
+        "SecurityGroups": [
+          {
+            "Fn::GetAtt": [
+              "AppLBSecurityGroupAD22E1CF",
+              "GroupId"
+            ]
+          }
+        ],
+        "Subnets": [
+          {
+            "Fn::ImportValue": "vpc:ExportsOutputRefVPCPublicSubnet1SubnetB4246D30D84F935B"
+          },
+          {
+            "Fn::ImportValue": "vpc:ExportsOutputRefVPCPublicSubnet2Subnet74179F3969CC10AD"
+          }
+        ],
+        "Type": "application"
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/AppLB/Resource"
+      }
+    },
+    "AppLBSecurityGroupAD22E1CF": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Automatically created Security Group for ELB autoscaleAppLB5F3D23A6",
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Internet access ALB 80",
+            "FromPort": 80,
+            "IpProtocol": "tcp",
+            "ToPort": 80
+          }
+        ],
+        "VpcId": {
+          "Fn::ImportValue": "vpc:ExportsOutputRefVPCB9E5F0B4BD23A326"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/AppLB/SecurityGroup/Resource"
+      }
+    },
+    "AppLBSecurityGrouptoautoscaleASGInstanceSecurityGroup5C49F820806152D7AA": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "GroupId": {
+          "Fn::GetAtt": [
+            "AppLBSecurityGroupAD22E1CF",
+            "GroupId"
+          ]
+        },
+        "IpProtocol": "tcp",
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": {
+          "Fn::GetAtt": [
+            "ASGInstanceSecurityGroup0525485D",
+            "GroupId"
+          ]
+        },
+        "FromPort": 80,
+        "ToPort": 80
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/AppLB/SecurityGroup/to autoscaleASGInstanceSecurityGroup5C49F820:80"
+      }
+    },
+    "AppLBport80DEBFEDBF": {
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties": {
+        "DefaultActions": [
+          {
+            "TargetGroupArn": {
+              "Ref": "AppLBport80addTargetGroupGroup6773129C"
+            },
+            "Type": "forward"
+          }
+        ],
+        "LoadBalancerArn": {
+          "Ref": "AppLB8480806C"
+        },
+        "Port": 80,
+        "Protocol": "HTTP"
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/AppLB/port80/Resource"
+      }
+    },
+    "AppLBport80addTargetGroupGroup6773129C": {
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties": {
+        "Port": 80,
+        "Protocol": "HTTP",
+        "TargetGroupAttributes": [
+          {
+            "Key": "stickiness.enabled",
+            "Value": "false"
+          }
+        ],
+        "TargetType": "instance",
+        "VpcId": {
+          "Fn::ImportValue": "vpc:ExportsOutputRefVPCB9E5F0B4BD23A326"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/AppLB/port80/addTargetGroupGroup/Resource"
+      }
+    },
+    "ASGInstanceSecurityGroup0525485D": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "auto-scale/ASG/InstanceSecurityGroup",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "auto-scale/ASG"
+          }
+        ],
+        "VpcId": {
+          "Fn::ImportValue": "vpc:ExportsOutputRefVPCB9E5F0B4BD23A326"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/ASG/InstanceSecurityGroup/Resource"
+      }
+    },
+    "ASGInstanceSecurityGroupfromautoscaleAppLBSecurityGroup7BA85840802EA164B5": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "Description": "Load balancer to target",
+        "FromPort": 80,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "ASGInstanceSecurityGroup0525485D",
+            "GroupId"
+          ]
+        },
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "AppLBSecurityGroupAD22E1CF",
+            "GroupId"
+          ]
+        },
+        "ToPort": 80
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/ASG/InstanceSecurityGroup/from autoscaleAppLBSecurityGroup7BA85840:80"
+      }
+    },
+    "ASGInstanceProfile0A2834D7": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": [
+          "SSM-demo"
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/ASG/InstanceProfile"
+      }
+    },
+    "ASGLaunchConfigC00AF12B": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "ASGAmiMap1D36EDE4",
+            {
+              "Ref": "AWS::Region"
+            },
+            "ami"
+          ]
+        },
+        "InstanceType": "t2.micro",
+        "AssociatePublicIpAddress": false,
+        "IamInstanceProfile": {
+          "Ref": "ASGInstanceProfile0A2834D7"
+        },
+        "SecurityGroups": [
+          {
+            "Fn::GetAtt": [
+              "ASGInstanceSecurityGroup0525485D",
+              "GroupId"
+            ]
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash\namazon-linux-extras install epel -y\nyum update -y\nyum install stress -y\nyum install -y httpd\nyum install -y awslogsd\nsystemctl start httpd.service\nsystemctl enable httpd.service\necho \"Hello World from $(hostname -f)\" > /var/www/html/index.html\n# Add apache logs to cloudwatch\ncat << 'EOF' >> /etc/awslogs/awslogs.conf\n[apache logs]\ndatetime_format = %b %d %H:%M:%S\nfile = /var/log/httpd/access_log\nbuffer_duration = 5000\nlog_stream_name = weblogs\ninitial_position = start_of_file\nlog_group_name = apaches_logs\nEOF\nsudo systemctl start awslogsd\nsudo chkconfig awslogsd on\nsudo systemctl enable awslogsd.service\nsudo curl localhost"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/ASG/LaunchConfig"
+      }
+    },
+    "ASG46ED3070": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "MaxSize": "16",
+        "MinSize": "2",
+        "DesiredCapacity": "2",
+        "LaunchConfigurationName": {
+          "Ref": "ASGLaunchConfigC00AF12B"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "PropagateAtLaunch": true,
+            "Value": "auto-scale/ASG"
+          }
+        ],
+        "TargetGroupARNs": [
+          {
+            "Ref": "AppLBport80addTargetGroupGroup6773129C"
+          }
+        ],
+        "VPCZoneIdentifier": [
+          {
+            "Fn::ImportValue": "vpc:ExportsOutputRefVPCPrivateSubnet1Subnet8BCA10E01F79A1B7"
+          },
+          {
+            "Fn::ImportValue": "vpc:ExportsOutputRefVPCPrivateSubnet2SubnetCFCDAA7AB22CF85D"
+          }
+        ]
+      },
+      "UpdatePolicy": {
+        "AutoScalingScheduledAction": {
+          "IgnoreUnmodifiedGroupSizeProperties": true
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/ASG/ASG"
+      }
+    },
+    "CDKMetadata": {
+      "Type": "AWS::CDK::Metadata",
+      "Properties": {
+        "Analytics": "v2:deflate64:H4sIAAAAAAAA/31PTU8CMRD9Ldy71SwHzkqMIcFIWO9m6M4uI6Vt2imEbPrfbRclqyae+r5mpq+W9ULez+AcKtUeKk07OTQM6iCy9D6ghsCktIV2BxqMItOfajk8OKdJAZM16+w9jh56sex+8mmOAqP5ynzjif8Gvkd+9ja6EpnQJFDlmw2q6Ikvt8j/wlPvMYQ/8sqMehIQ2QYFOjfKfTJpruS2bQ3RqP3Smo766Mc/Fvl3NAmCo8zGygQurTfedqQxiS0GG73CMvUCzuWJAl8ju8gFTQP5TkvlRhKbC++tuZvLhZzPPgJR5aNhOqLcXt9P90VS4LUBAAA="
+      },
+      "Metadata": {
+        "aws:cdk:path": "auto-scale/CDKMetadata/Default"
+      },
+      "Condition": "CDKMetadataAvailable"
+    }
+  },
+  "Mappings": {
+    "ASGAmiMap1D36EDE4": {
+      "eu-west-1": {
+        "ami": "ami-0c1bc246476a5572b"
+      }
+    }
+  },
+  "Outputs": {
+    "Output": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AppLB8480806C",
+          "DNSName"
+        ]
+      }
+    },
+    "ExportsOutputFnGetAttASGInstanceSecurityGroup0525485DGroupIdC45350A8": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ASGInstanceSecurityGroup0525485D",
+          "GroupId"
+        ]
+      },
+      "Export": {
+        "Name": "auto-scale:ExportsOutputFnGetAttASGInstanceSecurityGroup0525485DGroupIdC45350A8"
+      }
+    }
+  },
+  "Conditions": {
+    "CDKMetadataAvailable": {
+      "Fn::Or": [
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "af-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ca-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-northwest-1"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-3"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "me-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "sa-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-2"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-west-2"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+    }
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                  ],
+                  {
+                    "Ref": "BootstrapVersion"
+                  }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+        }
+      ]
+    }
+  }
+}

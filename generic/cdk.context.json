@@ -1,0 +1,14 @@
+{
+  "availability-zones:account=966348485303:region=eu-west-1": [
+    "eu-west-1a",
+    "eu-west-1b",
+    "eu-west-1c"
+  ],
+  "context": {
+    "cidr": "10.0.0.0/16",
+    "max_az": "2",
+    "nat_gateways": "2",
+    "pvt_cidr_mask": "24",
+    "pub_cidr_mask": "24"
+  }
+}
