@@ -1,8 +1,9 @@
 #!/bin/bash
-sudo apt update
-sudo apt install nginx
-sudo systemctl enable nginx
-sudo systemctl restart nginx 
+cd /opt/registration_form_application && git pull
+# sudo apt update
+# sudo apt install nginx
+# sudo systemctl enable nginx
+# sudo systemctl restart nginx 
 # amazon-linux-extras install epel -y
 # yum update -y
 # yum install stress -y
