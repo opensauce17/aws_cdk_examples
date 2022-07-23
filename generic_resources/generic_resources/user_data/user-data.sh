@@ -1,5 +1,7 @@
 #!/bin/bash
-cd /opt/registration_form_application && git pull
+sudo cd /opt/registration_form_application && sudo git pull
+sudo chown www-data:www-data /opt/registration_form_application/*
+sudo systemctl restart reg-form.service
 # sudo apt update
 # sudo apt install nginx
 # sudo systemctl enable nginx
