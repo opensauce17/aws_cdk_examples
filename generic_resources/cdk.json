@@ -39,6 +39,6 @@
     "asg_desired_capacity": 2,
     "min_capacity": 2,
     "max_capacity": 16,
-    "ami": "ami-0f1af23ba5de0892a"
+    "ami": "ami-0bfd9b6fd9e429e4b"
   }
 }
